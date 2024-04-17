@@ -1,0 +1,352 @@
+{
+	"info": {
+		"_postman_id": "dc8561a1-d469-4573-bb8c-c1f6fcb58c1b",
+		"name": "Foody-API-Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26750385",
+		"_collection_link": "https://warped-star-45905.postman.co/workspace/qa~fb2bbf2d-4c61-4543-85ab-389d67cb348d/collection/26750385-dc8561a1-d469-4573-bb8c-c1f6fcb58c1b?action=share&source=collection_link&creator=26750385"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Response body includes username, password, and accessToken\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"username\");",
+							"    pm.expect(jsonData).to.have.property(\"password\");",
+							"    pm.expect(jsonData).to.have.property(\"accessToken\");",
+							"});",
+							"pm.test(\"Save accessToken as collection variable\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"token\", jsonData.accessToken);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"userName\": \"sabre2\", \n\"password\": \"123456\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/User/Authentication",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"User",
+						"Authentication"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create food",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// List of food words",
+							"const foodWords = [\"apple\", \"banana\", \"orange\", \"mango\", \"grape\", \"kiwi\", \"pear\", \"peach\"];",
+							"",
+							"// Select a random food word",
+							"const randomFoodWord = foodWords[Math.floor(Math.random() * foodWords.length)];",
+							"",
+							"// Generate a random number between 0 and 999 (inclusive)",
+							"const randomNumber = Math.floor(Math.random() * 1000);",
+							"",
+							"// Combine the random food word and random number to create the food title",
+							"const randomFoodTitle = randomFoodWord + randomNumber;",
+							"",
+							"// Store the random food title as a collection variable",
+							"pm.collectionVariables.set(\"randomFood\", randomFoodTitle);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test(\"Response body contains foodId property\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"foodId\");",
+							"});",
+							"pm.test(\"Save foodId as collection variable\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"foodId\", jsonData.foodId);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"name\": \"{{randomFood}}\",\n\"description\": \"test{{randomFood}}\",\n\"url\": \"\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/Food/Create",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"Food",
+						"Create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all food",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response is an array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Response contains the searched food name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    var searchedFood = pm.variables.get(\"randomFood\");",
+							"    var foodNames = jsonData.map(function(item) {",
+							"        return item.name; ",
+							"    });",
+							"    pm.expect(foodNames).to.include(searchedFood);",
+							"});",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/Food/All",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"Food",
+						"All"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit the Name of the Food",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains 'Successfully edited' message\", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"Successfully edited\");",
+							"});",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n  {\n    \"path\": \"/name\",\n    \"op\": \"replace\",\n    \"value\": \"food Editet successfully!!!\"\n  }\n]\n\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/Food/Edit/{{foodId}}?foodid={{lastIdeaId}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"Food",
+						"Edit",
+						"{{foodId}}"
+					],
+					"query": [
+						{
+							"key": "foodid",
+							"value": "{{lastIdeaId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete last food",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response body is a string\", function() {",
+							"    pm.expect(pm.response.text()).to.be.a('string');",
+							"});",
+							"",
+							"pm.test(\"Response body equals 'The idea is deleted!'\", function () {",
+							"    pm.expect(pm.response.json()).to.deep.equal({ \"msg\": \"Deleted successfully!\" });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/Food/Delete/{{foodId}}?foodid={{lastIdeaId}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"Food",
+						"Delete",
+						"{{foodId}}"
+					],
+					"query": [
+						{
+							"key": "foodid",
+							"value": "{{lastIdeaId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "randomFood",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "lastIdeaId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "foodId",
+			"value": ""
+		}
+	]
+}
